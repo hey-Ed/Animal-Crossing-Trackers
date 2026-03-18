@@ -701,10 +701,11 @@ function loadCityFolkBugs() {
     const total = bugMap.length;
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
-    function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+function updateCounter() {
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = count + " / " + total + "   •   " + percent + "%";
+}
 
     bugMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -745,10 +746,11 @@ function loadCityFolkFish() {
     const total = fishMap.length;
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
-    function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+function updateCounter() {
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = count + " / " + total + "   •   " + percent + "%";
+}
 
     fishMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -789,10 +791,11 @@ function loadWildWorldBugs() {
     const total = wwBugMap.length;
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
-    function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+function updateCounter() {
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = count + " / " + total + "   •   " + percent + "%";
+}
 
     wwBugMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -833,10 +836,11 @@ function loadWildWorldFish() {
     const total = wwFishMap.length;
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
-    function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+function updateCounter() {
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = count + " / " + total + "   •   " + percent + "%";
+}
 
     wwFishMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -877,10 +881,11 @@ function loadGameCubeBugs() {
     const total = gcBugMap.length;
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
-    function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+function updateCounter() {
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = count + " / " + total + "   •   " + percent + "%";
+}
 
     gcBugMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -923,10 +928,11 @@ function loadGameCubeFish() {
     const total = gcFishMap.length;
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
-    function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+function updateCounter() {
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = count + " / " + total + "   •   " + percent + "%";
+}
 
     gcFishMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -970,9 +976,10 @@ function loadNewLeafBugs() {
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
     function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = count + " / " + total + "   •   " + percent + "%";
+}
 
     nlBugMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -1016,9 +1023,10 @@ function loadNewLeafFish() {
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
     function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = `${count} / ${total}   •   ${percent}%`;
+}
 
     nlFishMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -1062,9 +1070,10 @@ function loadNewHorizonsBugs() {
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
     function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = `${count} / ${total}   •   ${percent}%`;
+}
 
     nhBugMap.forEach(([name, file]) => {
         const cell = document.createElement("div");
@@ -1108,9 +1117,10 @@ function loadNewHorizonsFish() {
     let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
     function updateCounter() {
-        const count = Object.values(caught).filter(v => v).length;
-        counter.textContent = `${count} / ${total}`;
-    }
+    const count = Object.values(caught).filter(v => v).length;
+    const percent = ((count / total) * 100).toFixed(1);
+    counter.textContent = `${count} / ${total}   •   ${percent}%`;
+}
 
     nhFishMap.forEach(([name, file]) => {
         const cell = document.createElement("div");

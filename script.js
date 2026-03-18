@@ -1,21 +1,21 @@
 let soundEnabled = true;
 const grid = document.getElementById("grid");
 const popSound = new Audio("sounds/pop.mp3");
-popSound.volume = 0.3; // 🔊 volume réduit (plus agréable)
+popSound.volume = 0.3; // volume réduit
 const counter = document.getElementById("counter");
 
 const gameSelect = document.getElementById("gameSelect");
 const categorySelect = document.getElementById("categorySelect");
 const title = document.getElementById("title");
 
-// 🔥 clé dynamique par jeu + catégorie
+// clé dynamique par jeu + catégorie
 function getStorageKey() {
     const game = gameSelect.value;
     const category = categorySelect.value;
     return `caught_${game}_${category}`;
 }
 
-// 🔥 mapping EXACT (ordre du jeu)
+// mapping (game order)
 const bugMap = [
 ["Common butterfly","Common_Butterfly_CF_Icon.png"],
 ["Yellow butterfly","Yellow_Butterfly_CF_Icon.png"],
@@ -661,7 +661,7 @@ const nhFishMap = [
 ["Coelacanth","Coelacanth_NH_icon.png"]
 ];
 
-// 🔄 charge la bonne grille
+// load grid
 function loadGrid() {
     grid.innerHTML = "";
 
@@ -725,7 +725,7 @@ cell.appendChild(label);
         cell.addEventListener("click", () => {
     if (soundEnabled) {
     popSound.currentTime = 0;
-    popSound.playbackRate = caught[file] ? 0.8 : 1; // plus grave si décoché
+    popSound.playbackRate = caught[file] ? 0.8 : 1;
     popSound.play().catch(() => {});
 }
             caught[file] = !caught[file];
@@ -770,7 +770,7 @@ cell.appendChild(label);
         cell.addEventListener("click", () => {
     if (soundEnabled) {
     popSound.currentTime = 0;
-    popSound.playbackRate = caught[file] ? 0.8 : 1; // plus grave si décoché
+    popSound.playbackRate = caught[file] ? 0.8 : 1;
     popSound.play().catch(() => {});
 }
             caught[file] = !caught[file];
@@ -815,7 +815,7 @@ cell.appendChild(label);
         cell.addEventListener("click", () => {
     if (soundEnabled) {
     popSound.currentTime = 0;
-    popSound.playbackRate = caught[file] ? 0.8 : 1; // plus grave si décoché
+    popSound.playbackRate = caught[file] ? 0.8 : 1;
     popSound.play().catch(() => {});
 }
             caught[file] = !caught[file];
@@ -860,7 +860,7 @@ cell.appendChild(label);
         cell.addEventListener("click", () => {
     if (soundEnabled) {
     popSound.currentTime = 0;
-    popSound.playbackRate = caught[file] ? 0.8 : 1; // plus grave si décoché
+    popSound.playbackRate = caught[file] ? 0.8 : 1;
     popSound.play().catch(() => {});
 }
             caught[file] = !caught[file];
@@ -1158,14 +1158,14 @@ function loadNewHorizonsFish() {
     updateCounter();
 }
 
-// 🔁 events
+// events
 gameSelect.addEventListener("change", loadGrid);
 categorySelect.addEventListener("change", loadGrid);
 
-// 🚀 lancement initial
+// inital loading
 loadGrid();
 
-// 🔄 reset (corrigé)
+// reset
 document.getElementById("reset").addEventListener("click", () => {
     if (confirm("Reset current run?")) {
         localStorage.removeItem(getStorageKey());
@@ -1173,7 +1173,7 @@ document.getElementById("reset").addEventListener("click", () => {
     }
 });
 
-// 🏷️ toggle noms
+// name toggle
 document.getElementById("toggleNames").addEventListener("click", () => {
     grid.classList.toggle("show-names");
 });

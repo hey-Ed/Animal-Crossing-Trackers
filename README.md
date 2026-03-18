@@ -62,7 +62,7 @@ Planned improvements and features for upcoming versions:
 - Improved overall interface and visual polish
 - Optional themes (per game or global)
 
-### 📱 Mobile Support
+###  Mobile Support
 - Responsive design for mobile devices
 - Improved touch interactions
 

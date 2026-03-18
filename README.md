@@ -17,7 +17,7 @@ A simple and visual web app to track the bugs and fish you’ve caught during yo
 
 ##  Live Version
 
- https://aidegqre.github.io/Animal-Crossing-Trackers/
+ https://hey-ed.github.io/Animal-Crossing-Trackers/
 
 ---
 

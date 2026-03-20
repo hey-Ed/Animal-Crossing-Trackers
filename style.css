@@ -141,3 +141,19 @@ button:hover {
 .show-names .name {
     display: block;
 }
+
+/* 🤝 COOP MENU */
+#coopMenu {
+    margin-bottom: 15px;
+}
+
+#coopMenu input {
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    margin-right: 5px;
+}
+
+#coopMenu button {
+    margin: 5px;
+}

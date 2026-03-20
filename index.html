@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>AC Tracker</title>
-	<link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css?v=1.0">
 </head>
 <body>
@@ -11,14 +11,15 @@
     <h1>🐛 Animal Crossing Tracker</h1>
 
     <div id="menu">
-	<button id="toggleNames">Display Names</button> <button id="toggleSound">SFX ON</button>
+        <button id="toggleNames">Display Names</button>
+        <button id="toggleSound">SFX ON</button>
+
         <select id="gameSelect">
-		    <option value="gc">GameCube</option>
-			<option value="ww">Wild World</option>
+            <option value="gc">GameCube</option>
+            <option value="ww">Wild World</option>
             <option value="cf">City Folk</option>
             <option value="nl">New Leaf</option>
             <option value="nh">New Horizons</option>
-            
         </select>
 
         <select id="categorySelect">
@@ -26,14 +27,43 @@
             <option value="fish">Fish</option>
         </select>
     </div>
+	
+    <div id="coopMenu">
+        <input type="text" id="roomInput" placeholder="Enter room code">
+        <button id="joinRoom">Join</button>
+        <button id="createRoom">Create</button>
+    </div>	
 
-    <h2 id="title">City Folk - Insectes</h2>
+    <h2 id="title">City Folk - Bugs</h2>
     <p id="counter">0 / 64</p>
 
     <div id="grid"></div>
 
     <button id="reset">Reset</button>
 
-    <script src="script.js?v=1.1"></script>
+    <!-- 🔥 FIREBASE (VERSION SIMPLE ET COMPAT) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBRAMzzzCiwj_k7xdO_1vP_o2fiyrbt7nM",
+            authDomain: "ac-tracker-coop.firebaseapp.com",
+            databaseURL: "https://ac-tracker-coop-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "ac-tracker-coop",
+            storageBucket: "ac-tracker-coop.firebasestorage.app",
+            messagingSenderId: "417785997476",
+            appId: "1:417785997476:web:5a1c80f740d60637f55e31"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        // 🔥 TRÈS IMPORTANT → rend accessible dans script.js
+        window.db = firebase.database();
+    </script>
+
+    <!-- TON SCRIPT -->
+    <script src="script.js?v=3.0"></script>
+
 </body>
 </html>

@@ -1,18 +1,58 @@
+const db = window.db;
+
+function ref(path) {
+    return db.ref(path);
+}
+
+function set(refObj, data) {
+    return refObj.set(data);
+}
+
+function onValue(refObj, callback) {
+    return refObj.on("value", snapshot => callback(snapshot));
+}
+
+function sanitizeKey(key) {
+    return key.replace(/[.#$\[\]/ ]/g, "_");
+}
+
+let currentRoom = null;
+
 let soundEnabled = true;
 const grid = document.getElementById("grid");
 const popSound = new Audio("sounds/pop.mp3");
-popSound.volume = 0.3; // volume réduit
+popSound.volume = 0.3;
 const counter = document.getElementById("counter");
 
 const gameSelect = document.getElementById("gameSelect");
 const categorySelect = document.getElementById("categorySelect");
 const title = document.getElementById("title");
 
-// clé dynamique par jeu + catégorie
+// FIREBASE TEST (SAFE)
+try {
+    if (typeof db !== "undefined") {
+        db.ref("test").set({
+            status: "connected 🔥",
+            timestamp: Date.now()
+        });
+        console.log("✅ Firebase connected");
+    } else {
+        console.log("⚠️ no Firebase");
+    }
+} catch (e) {
+    console.log("❌ Firebase error:", e);
+}
+
+// key per game and categorie
 function getStorageKey() {
+    if (currentRoom && window.currentRoomData) {
+        const game = gameSelect.value;
+        const category = categorySelect.value;
+        return window.currentRoomData[`${game}_${category}`] || {};
+    }
     const game = gameSelect.value;
     const category = categorySelect.value;
-    return `caught_${game}_${category}`;
+    return JSON.parse(localStorage.getItem(`caught_${game}_${category}`)) || {};
 }
 
 // mapping (game order)
@@ -692,91 +732,112 @@ if (game === "cf" && category === "bugs") {
     loadNewHorizonsFish();
 } else {
         counter.textContent = "0 / 0";
-        grid.innerHTML = "<p>Pas encore implémenté</p>";
+        grid.innerHTML = "<p>nwhat are you doing here mate</p>";
     }
 }
 
 // 🐛 City Folk bugs
 function loadCityFolkBugs() {
     const total = bugMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
-function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = count + " / " + total + "   •   " + percent + "%";
-}
+    function updateCounter() {
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = count + " / " + total + "   •   " + percent + "%";
+    }
 
     bugMap.forEach(([name, file]) => {
-        const cell = document.createElement("div");
-        cell.classList.add("cell");
+    const safeKey = sanitizeKey(file);
 
-        const img = document.createElement("img");
-        img.src = `icons/cf/bugs/${file}`;
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
 
-        if (caught[file]) cell.classList.add("caught-bugs");
+    const img = document.createElement("img");
+    img.src = `icons/cf/bugs/${file}`;
 
-        cell.appendChild(img);
-		const label = document.createElement("div");
-label.classList.add("name");
-label.textContent = name;
-cell.appendChild(label);
+    if (caught[safeKey]) cell.classList.add("caught-bugs");
 
-        cell.addEventListener("click", () => {
-    if (soundEnabled) {
-    popSound.currentTime = 0;
-    popSound.playbackRate = caught[file] ? 0.8 : 1;
-    popSound.play().catch(() => {});
-}
-            caught[file] = !caught[file];
-            cell.classList.toggle("caught-bugs");
+    cell.appendChild(img);
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
-            updateCounter();
-        });
+    const label = document.createElement("div");
+    label.classList.add("name");
+    label.textContent = name;
+    cell.appendChild(label);
 
-        grid.appendChild(cell);
+    cell.addEventListener("click", () => {
+        if (soundEnabled) {
+            popSound.currentTime = 0;
+            popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
+            popSound.play().catch(() => {});
+        }
+
+        caught[safeKey] = !caught[safeKey];
+        cell.classList.toggle("caught-bugs");
+
+        if (!currentRoom) {
+            const game = gameSelect.value;
+            const category = categorySelect.value;
+            localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+        } else {
+            updateRoom(caught);
+        }
+
+        updateCounter();
     });
+
+    grid.appendChild(cell);
+});
 
     updateCounter();
 }
-
 // 🐟 City Folk fish
 function loadCityFolkFish() {
     const total = fishMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
-function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = count + " / " + total + "   •   " + percent + "%";
-}
+    function updateCounter() {
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = count + " / " + total + "   •   " + percent + "%";
+    }
 
     fishMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/cf/fish/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-fish");
+        if (caught[safeKey]) cell.classList.add("caught-fish");
 
         cell.appendChild(img);
-		const label = document.createElement("div");
-label.classList.add("name");
-label.textContent = name;
-cell.appendChild(label);
+
+        const label = document.createElement("div");
+        label.classList.add("name");
+        label.textContent = name;
+        cell.appendChild(label);
 
         cell.addEventListener("click", () => {
-    if (soundEnabled) {
-    popSound.currentTime = 0;
-    popSound.playbackRate = caught[file] ? 0.8 : 1;
-    popSound.play().catch(() => {});
-}
-            caught[file] = !caught[file];
+            if (soundEnabled) {
+                popSound.currentTime = 0;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
+                popSound.play().catch(() => {});
+            }
+
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-fish");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -789,39 +850,50 @@ cell.appendChild(label);
 // 🐛 Wild World bugs
 function loadWildWorldBugs() {
     const total = wwBugMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
-function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = count + " / " + total + "   •   " + percent + "%";
-}
+    function updateCounter() {
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = count + " / " + total + "   •   " + percent + "%";
+    }
 
     wwBugMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/ww/bugs/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-bugs");
+        if (caught[safeKey]) cell.classList.add("caught-bugs");
 
         cell.appendChild(img);
-		const label = document.createElement("div");
-label.classList.add("name");
-label.textContent = name;
-cell.appendChild(label);
+
+        const label = document.createElement("div");
+        label.classList.add("name");
+        label.textContent = name;
+        cell.appendChild(label);
 
         cell.addEventListener("click", () => {
-    if (soundEnabled) {
-    popSound.currentTime = 0;
-    popSound.playbackRate = caught[file] ? 0.8 : 1;
-    popSound.play().catch(() => {});
-}
-            caught[file] = !caught[file];
+            if (soundEnabled) {
+                popSound.currentTime = 0;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
+                popSound.play().catch(() => {});
+            }
+
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-bugs");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -834,39 +906,50 @@ cell.appendChild(label);
 // 🐟 Wild World fish
 function loadWildWorldFish() {
     const total = wwFishMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
-function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = count + " / " + total + "   •   " + percent + "%";
-}
+    function updateCounter() {
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = count + " / " + total + "   •   " + percent + "%";
+    }
 
     wwFishMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/ww/fish/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-fish");
+        if (caught[safeKey]) cell.classList.add("caught-fish");
 
         cell.appendChild(img);
-		const label = document.createElement("div");
-label.classList.add("name");
-label.textContent = name;
-cell.appendChild(label);
+
+        const label = document.createElement("div");
+        label.classList.add("name");
+        label.textContent = name;
+        cell.appendChild(label);
 
         cell.addEventListener("click", () => {
-    if (soundEnabled) {
-    popSound.currentTime = 0;
-    popSound.playbackRate = caught[file] ? 0.8 : 1;
-    popSound.play().catch(() => {});
-}
-            caught[file] = !caught[file];
+            if (soundEnabled) {
+                popSound.currentTime = 0;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
+                popSound.play().catch(() => {});
+            }
+
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-fish");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -879,22 +962,24 @@ cell.appendChild(label);
 // 🐛 GameCube bugs
 function loadGameCubeBugs() {
     const total = gcBugMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
-function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = count + " / " + total + "   •   " + percent + "%";
-}
+    function updateCounter() {
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = count + " / " + total + "   •   " + percent + "%";
+    }
 
     gcBugMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/gc/bugs/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-bugs");
+        if (caught[safeKey]) cell.classList.add("caught-bugs");
 
         cell.appendChild(img);
 
@@ -906,14 +991,21 @@ function updateCounter() {
         cell.addEventListener("click", () => {
             if (soundEnabled) {
                 popSound.currentTime = 0;
-                popSound.playbackRate = caught[file] ? 0.8 : 1;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
                 popSound.play().catch(() => {});
             }
 
-            caught[file] = !caught[file];
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-bugs");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -926,22 +1018,24 @@ function updateCounter() {
 // 🐟 GameCube fish
 function loadGameCubeFish() {
     const total = gcFishMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
-function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = count + " / " + total + "   •   " + percent + "%";
-}
+    function updateCounter() {
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = count + " / " + total + "   •   " + percent + "%";
+    }
 
     gcFishMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/gc/fish/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-fish");
+        if (caught[safeKey]) cell.classList.add("caught-fish");
 
         cell.appendChild(img);
 
@@ -953,14 +1047,21 @@ function updateCounter() {
         cell.addEventListener("click", () => {
             if (soundEnabled) {
                 popSound.currentTime = 0;
-                popSound.playbackRate = caught[file] ? 0.8 : 1;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
                 popSound.play().catch(() => {});
             }
 
-            caught[file] = !caught[file];
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-fish");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -973,22 +1074,24 @@ function updateCounter() {
 // 🐛 New Leaf bugs
 function loadNewLeafBugs() {
     const total = nlBugMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
     function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = count + " / " + total + "   •   " + percent + "%";
-}
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = count + " / " + total + "   •   " + percent + "%";
+    }
 
     nlBugMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/nl/bugs/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-bugs");
+        if (caught[safeKey]) cell.classList.add("caught-bugs");
 
         cell.appendChild(img);
 
@@ -1000,14 +1103,21 @@ function loadNewLeafBugs() {
         cell.addEventListener("click", () => {
             if (soundEnabled) {
                 popSound.currentTime = 0;
-                popSound.playbackRate = caught[file] ? 0.8 : 1;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
                 popSound.play().catch(() => {});
             }
 
-            caught[file] = !caught[file];
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-bugs");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -1020,22 +1130,24 @@ function loadNewLeafBugs() {
 // 🐟 New Leaf fish
 function loadNewLeafFish() {
     const total = nlFishMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
     function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = `${count} / ${total}   •   ${percent}%`;
-}
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = `${count} / ${total}   •   ${percent}%`;
+    }
 
     nlFishMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/nl/fish/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-fish");
+        if (caught[safeKey]) cell.classList.add("caught-fish");
 
         cell.appendChild(img);
 
@@ -1047,14 +1159,21 @@ function loadNewLeafFish() {
         cell.addEventListener("click", () => {
             if (soundEnabled) {
                 popSound.currentTime = 0;
-                popSound.playbackRate = caught[file] ? 0.8 : 1;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
                 popSound.play().catch(() => {});
             }
 
-            caught[file] = !caught[file];
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-fish");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -1067,22 +1186,24 @@ function loadNewLeafFish() {
 // 🐛 New Horizons bugs
 function loadNewHorizonsBugs() {
     const total = nhBugMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
     function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = `${count} / ${total}   •   ${percent}%`;
-}
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = `${count} / ${total}   •   ${percent}%`;
+    }
 
     nhBugMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/nh/bugs/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-bugs");
+        if (caught[safeKey]) cell.classList.add("caught-bugs");
 
         cell.appendChild(img);
 
@@ -1094,14 +1215,21 @@ function loadNewHorizonsBugs() {
         cell.addEventListener("click", () => {
             if (soundEnabled) {
                 popSound.currentTime = 0;
-                popSound.playbackRate = caught[file] ? 0.8 : 1;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
                 popSound.play().catch(() => {});
             }
 
-            caught[file] = !caught[file];
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-bugs");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -1114,22 +1242,24 @@ function loadNewHorizonsBugs() {
 // 🐟 New Horizons fish
 function loadNewHorizonsFish() {
     const total = nhFishMap.length;
-    let caught = JSON.parse(localStorage.getItem(getStorageKey())) || {};
+    let caught = getStorageKey();
 
     function updateCounter() {
-    const count = Object.values(caught).filter(v => v).length;
-    const percent = ((count / total) * 100).toFixed(1);
-    counter.textContent = `${count} / ${total}   •   ${percent}%`;
-}
+        const count = Object.values(caught).filter(v => v).length;
+        const percent = ((count / total) * 100).toFixed(1);
+        counter.textContent = `${count} / ${total}   •   ${percent}%`;
+    }
 
     nhFishMap.forEach(([name, file]) => {
+        const safeKey = sanitizeKey(file);
+
         const cell = document.createElement("div");
         cell.classList.add("cell");
 
         const img = document.createElement("img");
         img.src = `icons/nh/fish/${file}`;
 
-        if (caught[file]) cell.classList.add("caught-fish");
+        if (caught[safeKey]) cell.classList.add("caught-fish");
 
         cell.appendChild(img);
 
@@ -1141,14 +1271,21 @@ function loadNewHorizonsFish() {
         cell.addEventListener("click", () => {
             if (soundEnabled) {
                 popSound.currentTime = 0;
-                popSound.playbackRate = caught[file] ? 0.8 : 1;
+                popSound.playbackRate = caught[safeKey] ? 0.8 : 1;
                 popSound.play().catch(() => {});
             }
 
-            caught[file] = !caught[file];
+            caught[safeKey] = !caught[safeKey];
             cell.classList.toggle("caught-fish");
 
-            localStorage.setItem(getStorageKey(), JSON.stringify(caught));
+            if (!currentRoom) {
+                const game = gameSelect.value;
+                const category = categorySelect.value;
+                localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
+            } else {
+                updateRoom(caught);
+            }
+
             updateCounter();
         });
 
@@ -1167,9 +1304,21 @@ loadGrid();
 
 // reset
 document.getElementById("reset").addEventListener("click", () => {
-    if (confirm("Reset current run?")) {
-        localStorage.removeItem(getStorageKey());
+    if (!confirm("Reset current run?")) return;
+
+    if (!currentRoom) {
+        // SOLO → localStorage
+        const game = gameSelect.value;
+        const category = categorySelect.value;
+        localStorage.removeItem(`caught_${game}_${category}`);
         loadGrid();
+    } else {
+        // COOP → Firebase
+        const game = gameSelect.value;
+        const category = categorySelect.value;
+
+        set(ref("rooms/" + currentRoom + "/" + `${game}_${category}`), {});
+        set(ref("rooms/" + currentRoom + "/lastActive"), Date.now());
     }
 });
 
@@ -1184,3 +1333,78 @@ document.getElementById("toggleSound").addEventListener("click", () => {
     document.getElementById("toggleSound").textContent =
         soundEnabled ? "SFX ON" : "SFX OFF";
 });
+
+// CREATE ROOM
+document.getElementById("createRoom").addEventListener("click", () => {
+    currentRoom = Math.random().toString(36).substring(2, 8);
+
+    set(ref("rooms/" + currentRoom + "/lastActive"), Date.now());
+
+    document.getElementById("roomInput").value = currentRoom;
+    alert("Room created: " + currentRoom);
+
+    listenToRoom();
+});
+
+// JOIN ROOM
+document.getElementById("joinRoom").addEventListener("click", () => {
+    const code = document.getElementById("roomInput").value;
+    if (!code) return alert("Enter a room code");
+
+    currentRoom = code;
+	set(ref("rooms/" + currentRoom + "/lastActive"), Date.now());
+    alert("Joined room: " + code);
+
+    listenToRoom();
+});
+
+function listenToRoom() {
+    const roomRef = ref("rooms/" + currentRoom);
+
+    onValue(roomRef, (snapshot) => {
+        const data = snapshot.val();
+
+        console.log("🔥 Firebase data:", data);
+
+        window.currentRoomData = data || {};
+
+        loadGrid();
+    });
+}
+
+function updateRoom(data) {
+    if (!currentRoom) return;
+
+    const game = gameSelect.value;
+    const category = categorySelect.value;
+
+    set(ref("rooms/" + currentRoom + "/" + `${game}_${category}`), data);
+
+// Update activity
+    set(ref("rooms/" + currentRoom + "/lastActive"), Date.now());
+}
+
+function cleanupOldRooms() {
+    const roomsRef = ref("rooms");
+
+    onValue(roomsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const now = Date.now();
+        const MAX_AGE = 1000 * 60 * 60 * 12;
+
+        Object.keys(data).forEach(roomId => {
+            const room = data[roomId];
+
+            if (!room.lastActive) return;
+
+            if (now - room.lastActive > MAX_AGE) {
+                console.log("🧹 Suppression room:", roomId);
+                set(ref("rooms/" + roomId), null);
+            }
+        });
+    });
+}
+
+cleanupOldRooms();

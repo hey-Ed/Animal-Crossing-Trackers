@@ -46,6 +46,7 @@ Perfect for **competitive speedruns** or racing with friends!
 
 ## 🌐 Live Version
 
+👉 https://actrackertool.aidegare.fr/
 👉 https://hey-ed.github.io/Animal-Crossing-Trackers/
 
 ---

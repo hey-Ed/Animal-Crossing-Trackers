@@ -2,16 +2,14 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AC Tracker</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="style.css?v=15.0">
+    <link rel="stylesheet" href="style.css?v=16.0">
 </head>
 <body>
 
     <h1>🐛 Animal Crossing Tracker</h1>
 
-    <!-- ── DESKTOP MENU ───────────────────────────────────────── -->
     <div id="menu">
         <div id="menuTop">
             <button id="toggleNames">Display Names</button>
@@ -40,7 +38,7 @@
         </div>
     </div>
 
-    <!-- ── COOP PANEL ─────────────────────────────────────────── -->
+    <!-- COOP PANEL -->
     <div id="coopMenu">
         <div id="modeSelector">
             <button id="btnModeCoop" class="mode-btn active">🤝 Co-op</button>
@@ -61,91 +59,18 @@
 
     <h2 id="title">DNM - Bugs</h2>
     <p id="counter">0 / 32</p>
+
+    <!-- RACE SCOREBOARD -->
     <div id="scoreboard"></div>
+
     <div id="grid"></div>
+
     <button id="reset">Reset</button>
 
-    <!-- ── MOBILE BOTTOM NAV ──────────────────────────────────── -->
-    <nav id="mobileNav">
-        <div class="nav-item" id="navGame">
-            <span class="nav-icon">🎮</span>
-            <span class="nav-label" id="navGameLabel">DNM</span>
-        </div>
-        <div class="nav-item" id="navCategory">
-            <span class="nav-icon" id="navCategoryIcon">🐛</span>
-            <span class="nav-label" id="navCategoryLabel">Bugs</span>
-        </div>
-        <div class="nav-item" id="navNames">
-            <span class="nav-icon">🏷️</span>
-            <span class="nav-label">Names</span>
-        </div>
-        <div class="nav-item" id="navSound">
-            <span class="nav-icon">🔊</span>
-            <span class="nav-label" id="navSoundLabel">SFX ON</span>
-        </div>
-        <div class="nav-item" id="navMulti">
-            <span class="nav-icon">🌐</span>
-            <span class="nav-label">Multi</span>
-        </div>
-    </nav>
-
-    <!-- ── MOBILE DRAWERS ─────────────────────────────────────── -->
-    <div class="mobile-drawer" id="drawerGame">
-        <div class="drawer-handle"></div>
-        <div class="drawer-title">Jeu</div>
-        <div class="drawer-options" id="drawerGameOptions">
-            <div class="drawer-option active" data-value="dnm">DNM</div>
-            <div class="drawer-option" data-value="gc">GameCube</div>
-            <div class="drawer-option" data-value="ep">DNMe+</div>
-            <div class="drawer-option" data-value="ww">Wild World</div>
-            <div class="drawer-option" data-value="cf">City Folk</div>
-            <div class="drawer-option" data-value="nl">New Leaf</div>
-            <div class="drawer-option" data-value="nh">New Horizons</div>
-        </div>
-    </div>
-
-    <div class="mobile-drawer" id="drawerCategory">
-        <div class="drawer-handle"></div>
-        <div class="drawer-title">Catégorie</div>
-        <div class="drawer-options" id="drawerCategoryOptions">
-            <div class="drawer-option active" data-value="bugs">🐛 Bugs</div>
-            <div class="drawer-option" data-value="fish">🐟 Fish</div>
-            <div class="drawer-option" data-value="sea">🦀 Sea Creatures</div>
-            <div class="drawer-option" data-value="all">🐛🐟 Bugs & Fish</div>
-        </div>
-    </div>
-
-    <div class="mobile-drawer" id="drawerMulti">
-        <div class="drawer-handle"></div>
-        <div class="drawer-title">Multiplayer</div>
-        <div class="drawer-multi-content">
-            <div id="mobileModeSelector">
-                <button id="mobileBtnCoop" class="mode-btn active">🤝 Co-op</button>
-                <button id="mobileBtnRace">🏁 Race</button>
-            </div>
-            <div id="mobileCoopFields">
-                <input type="text" id="mobileRoomInput" placeholder="Room code">
-                <div class="drawer-btn-row">
-                    <button id="mobileJoinRoom">Join</button>
-                    <button id="mobileCreateRoom">Create</button>
-                </div>
-            </div>
-            <div id="mobileRaceFields" style="display:none;">
-                <input type="text" id="mobilePseudoInput" placeholder="Your nickname">
-                <input type="text" id="mobileRaceRoomInput" placeholder="Room code">
-                <div class="drawer-btn-row">
-                    <button id="mobileJoinRaceRoom">Join</button>
-                    <button id="mobileCreateRaceRoom">Create</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="drawerOverlay"></div>
-
-    <!-- ── FIREBASE ────────────────────────────────────────────── -->
+    <!-- FIREBASE -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBRAMzzzCiwj_k7xdO_1vP_o2fiyrbt7nM",
@@ -156,11 +81,12 @@
             messagingSenderId: "417785997476",
             appId: "1:417785997476:web:5a1c80f740d60637f55e31"
         };
+
         firebase.initializeApp(firebaseConfig);
         window.db = firebase.database();
     </script>
 
-    <script src="script.js?v=15.0"></script>
+    <script src="script.js?v=16.0"></script>
 
 </body>
 </html>

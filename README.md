@@ -1,6 +1,6 @@
 # 🐛 Animal Crossing Tracker
 
-A simple and visual web app to track the bugs, fish and sea creatures you've caught during your **Animal Crossing speedruns** — now with **real-time multiplayer modes** and **mobile support**!
+A simple and visual web app to track the bugs, fish and sea creatures you've caught during your **Animal Crossing speedruns** — now with **real-time multiplayer modes**!
 
 ---
 
@@ -74,15 +74,6 @@ Perfect for **competitive speedruns** or racing with friends!
 3. Click **Create** to generate a room code, or **Join** with an existing code
 4. Each player tracks their own progress independently
 5. Watch the scoreboard update in real time!
-
----
-
-## 📱 Mobile
-
-The app is fully usable on mobile with a dedicated interface:
-- Fixed bottom navigation bar for quick access to game, category and settings
-- Slide-up drawers for game/category selection and multiplayer
-- Adaptive grid that fills the screen automatically
 
 ---
 

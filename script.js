@@ -992,6 +992,7 @@ function getStorageKey(game, category) {
 }
 
 function saveStorage(game, category, caught) {
+    if (game === "cf" && category === "fish") scheduleSheetSync();
     if (!currentRoom) {
         localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
         return;
@@ -1003,6 +1004,80 @@ function saveStorage(game, category, caught) {
         set(ref(`rooms/${currentRoom}/players/${myPseudo}/${game}_${category}`), caught);
         set(ref(`rooms/${currentRoom}/lastActive`), Date.now());
     }
+}
+
+// ─── GOOGLE SHEET SYNC (City Folk fish) ──────────────────────────────────────
+// Opt-in: open the tracker once with ?sheet=<Apps Script URL> to turn it on
+// (saved in this browser only), or ?sheet=off to turn it off.
+// The whole list of caught CF fish is sent each time, so unchecking,
+// a misclick or a reset are mirrored in the sheet too.
+const SHEET_SYNC_KEY = "sheetSyncUrl";
+
+(function initSheetSyncFromUrl() {
+    const params = new URLSearchParams(location.search);
+    if (!params.has("sheet")) return;
+    const value = params.get("sheet");
+    try {
+        if (!value || value === "off") localStorage.removeItem(SHEET_SYNC_KEY);
+        else localStorage.setItem(SHEET_SYNC_KEY, value);
+    } catch (e) {}
+    params.delete("sheet");
+    const query = params.toString();
+    history.replaceState(null, "", location.pathname + (query ? `?${query}` : "") + location.hash);
+})();
+
+function getSheetUrl() {
+    try { return localStorage.getItem(SHEET_SYNC_KEY); } catch (e) { return null; }
+}
+
+const CF_FISH_BY_KEY = Object.fromEntries(
+    DATA.cf.fish.map(([name, file]) => [sanitizeKey(file), name])
+);
+
+let sheetSyncTimer = null;
+
+function scheduleSheetSync() {
+    if (!getSheetUrl()) return;
+    clearTimeout(sheetSyncTimer);
+    // Short delay: groups fast clicks and lets co-op data arrive first
+    sheetSyncTimer = setTimeout(sendSheetSync, 600);
+}
+
+function sendSheetSync() {
+    const url = getSheetUrl();
+    if (!url) return;
+    const caught = getStorageKey("cf", "fish");
+    const names  = Object.keys(caught)
+        .filter(key => caught[key] && CF_FISH_BY_KEY[key])
+        .map(key => CF_FISH_BY_KEY[key]);
+
+    setSheetStatus("pending");
+    fetch(url, {
+        method:  "POST",
+        mode:    "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body:    JSON.stringify({ game: "cf", caught: names, t: Date.now() }),
+    })
+        .then(() => setSheetStatus("ok"))
+        .catch(() => setSheetStatus("error"));
+}
+
+function setSheetStatus(state) {
+    let badge = document.getElementById("sheetSyncBadge");
+    if (!badge) {
+        badge = document.createElement("div");
+        badge.id = "sheetSyncBadge";
+        badge.title = "Click to resend now";
+        badge.addEventListener("click", sendSheetSync);
+        document.body.appendChild(badge);
+    }
+    badge.className = `sheet-${state}`;
+    badge.textContent = {
+        idle:    "📄 Sheet sync",
+        pending: "📄 Sheet…",
+        ok:      "📄 Sheet ✓",
+        error:   "📄 Sheet ✗",
+    }[state];
 }
 
 // ─── ICON PATH ────────────────────────────────────────────────────────────────
@@ -1222,10 +1297,18 @@ gameSelect.addEventListener("change", loadGrid);
 categorySelect.addEventListener("change", loadGrid);
 loadGrid();
 
+// Sheet sync on: show the badge and send the current state once at startup
+if (getSheetUrl()) {
+    setSheetStatus("idle");
+    scheduleSheetSync();
+}
+
 document.getElementById("reset").addEventListener("click", () => {
     if (!confirm("Reset current run?")) return;
     const game     = gameSelect.value;
     const category = categorySelect.value;
+
+    if (game === "cf" && (category === "fish" || category === "all")) scheduleSheetSync();
 
     if (!currentRoom) {
         if (category === "all") {
@@ -1325,6 +1408,7 @@ function listenToRoom() {
     onValue(ref(`rooms/${currentRoom}`), (snapshot) => {
         window.currentRoomData = snapshot.val() || {};
         loadGrid();
+        scheduleSheetSync(); // co-op: teammates' catches reach the sheet too
     });
 }
 

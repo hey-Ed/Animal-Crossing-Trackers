@@ -4,16 +4,33 @@
     <meta charset="UTF-8">
     <title>AC Tracker</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="stylesheet" href="style.css?v=16.1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap">
+
+    <!-- Deux thèmes : "site" (par défaut, comme aidegare.fr) et "og" (style d'origine) -->
+    <link rel="stylesheet" href="style-site.css?v=17.0" id="themeSite">
+    <link rel="stylesheet" href="style.css?v=17.0" id="themeOg" disabled>
+    <script>
+        // Appliqué avant l'affichage pour éviter un flash du mauvais thème
+        (function () {
+            var og = false;
+            try { og = localStorage.getItem("trackerTheme") === "og"; } catch (e) {}
+            document.getElementById("themeOg").disabled   = !og;
+            document.getElementById("themeSite").disabled = og;
+            document.documentElement.dataset.theme = og ? "og" : "site";
+        })();
+    </script>
 </head>
 <body>
 
-    <h1>🐛 Animal Crossing Tracker</h1>
+    <h1><span class="title-emoji">🐛 </span>Animal Crossing Tracker</h1>
 
     <div id="menu">
         <div id="menuTop">
             <button id="toggleNames">Display Names</button>
             <button id="toggleSound">SFX ON</button>
+            <button id="toggleTheme">OG Style</button>
 
             <select id="gameSelect">
                 <option value="dnm">DNM</option>
@@ -86,7 +103,7 @@
         window.db = firebase.database();
     </script>
 
-    <script src="script.js?v=16.1"></script>
+    <script src="script.js?v=17.0"></script>
 
 </body>
 </html>

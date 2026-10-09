@@ -1349,6 +1349,27 @@ document.getElementById("toggleSound").addEventListener("click", () => {
     document.getElementById("toggleSound").textContent = soundEnabled ? "SFX ON" : "SFX OFF";
 });
 
+// ─── THEME (site / OG) ────────────────────────────────────────────────────────
+// The choice is applied in index.html before the page shows; this only toggles it.
+const toggleThemeBtn = document.getElementById("toggleTheme");
+
+function currentTheme() {
+    return document.documentElement.dataset.theme === "og" ? "og" : "site";
+}
+
+function applyTheme(theme) {
+    document.getElementById("themeOg").disabled   = theme !== "og";
+    document.getElementById("themeSite").disabled = theme === "og";
+    document.documentElement.dataset.theme = theme;
+    toggleThemeBtn.textContent = theme === "og" ? "New Style" : "OG Style";
+    try { localStorage.setItem("trackerTheme", theme); } catch (e) {}
+}
+
+toggleThemeBtn.textContent = currentTheme() === "og" ? "New Style" : "OG Style";
+toggleThemeBtn.addEventListener("click", () => {
+    applyTheme(currentTheme() === "og" ? "site" : "og");
+});
+
 // ─── COOP PANEL ───────────────────────────────────────────────────────────────
 document.getElementById("toggleCoop").addEventListener("click", () => {
     const btn    = document.getElementById("toggleCoop");
@@ -1476,10 +1497,18 @@ cleanupOldRooms();
         "#3498db","#9b59b6","#e91e8c","#1abc9c","#fff"
     ];
 
-    const RESTORE_COLORS = {
-        bugs: { bg: "#2ecc71", border: "#27ae60", shadow: "rgba(46,204,113,0.6)" },
-        fish: { bg: "#3498db", border: "#2980b9", shadow: "rgba(52,152,219,0.6)" },
-        none: { bg: "#2c2c2c", border: "#444",    shadow: "none" },
+    // Colors the cells fade back to after the rainbow, per theme
+    const RESTORE_COLORS_BY_THEME = {
+        og: {
+            bugs: { bg: "#2ecc71", border: "#27ae60", shadow: "rgba(46,204,113,0.6)" },
+            fish: { bg: "#3498db", border: "#2980b9", shadow: "rgba(52,152,219,0.6)" },
+            none: { bg: "#2c2c2c", border: "#444",    shadow: "none" },
+        },
+        site: {
+            bugs: { bg: "rgba(110,231,168,0.32)", border: "#6ee7a8", shadow: "rgba(110,231,168,0.35)" },
+            fish: { bg: "rgba(108,184,245,0.32)", border: "#6cb8f5", shadow: "rgba(108,184,245,0.35)" },
+            none: { bg: "#191919",                border: "#2a2a2a", shadow: "none" },
+        },
     };
 
     function launchConfetti() {
@@ -1521,6 +1550,9 @@ cleanupOldRooms();
         });
 
         setTimeout(() => {
+            const RESTORE_COLORS = RESTORE_COLORS_BY_THEME[
+                document.documentElement.dataset.theme === "og" ? "og" : "site"
+            ];
             cells.forEach((cell, i) => {
                 const saved  = savedClasses[i];
                 const target = saved.hasBugs ? RESTORE_COLORS.bugs

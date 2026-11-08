@@ -992,7 +992,7 @@ function getStorageKey(game, category) {
 }
 
 function saveStorage(game, category, caught) {
-    if (game === "cf" && category === "fish") scheduleSheetSync();
+    if (SHEET_SYNC[game] && category === "fish") scheduleSheetSync();
     if (!currentRoom) {
         localStorage.setItem(`caught_${game}_${category}`, JSON.stringify(caught));
         return;
@@ -1006,58 +1006,79 @@ function saveStorage(game, category, caught) {
     }
 }
 
-// ─── GOOGLE SHEET SYNC (City Folk fish) ──────────────────────────────────────
-// Opt-in: open the tracker once with ?sheet=<Apps Script URL> to turn it on
-// (saved in this browser only), or ?sheet=off to turn it off.
-// The whole list of caught CF fish is sent each time, so unchecking,
+// ─── GOOGLE SHEET SYNC (City Folk + New Leaf fish) ───────────────────────────
+// Opt-in, one Sheet per game: open the tracker once with
+//   ?sheet=<Apps Script URL>    for the City Folk route
+//   ?sheetnl=<Apps Script URL>  for the New Leaf route
+// (saved in this browser only), or =off to turn one off.
+// The whole list of caught fish is sent each time, so unchecking,
 // a misclick or a reset are mirrored in the sheet too.
-const SHEET_SYNC_KEY = "sheetSyncUrl";
+const SHEET_SYNC = {
+    cf: { param: "sheet",   storageKey: "sheetSyncUrl"    },
+    nl: { param: "sheetnl", storageKey: "sheetSyncUrl_nl" },
+};
 
 (function initSheetSyncFromUrl() {
     const params = new URLSearchParams(location.search);
-    if (!params.has("sheet")) return;
-    const value = params.get("sheet");
-    try {
-        if (!value || value === "off") localStorage.removeItem(SHEET_SYNC_KEY);
-        else localStorage.setItem(SHEET_SYNC_KEY, value);
-    } catch (e) {}
-    params.delete("sheet");
+    let changed = false;
+    Object.values(SHEET_SYNC).forEach(({ param, storageKey }) => {
+        if (!params.has(param)) return;
+        const value = params.get(param);
+        try {
+            if (!value || value === "off") localStorage.removeItem(storageKey);
+            else localStorage.setItem(storageKey, value);
+        } catch (e) {}
+        params.delete(param);
+        changed = true;
+    });
+    if (!changed) return;
     const query = params.toString();
     history.replaceState(null, "", location.pathname + (query ? `?${query}` : "") + location.hash);
 })();
 
-function getSheetUrl() {
-    try { return localStorage.getItem(SHEET_SYNC_KEY); } catch (e) { return null; }
+function getSheetUrl(game) {
+    const config = SHEET_SYNC[game];
+    if (!config) return null;
+    try { return localStorage.getItem(config.storageKey); } catch (e) { return null; }
 }
 
-const CF_FISH_BY_KEY = Object.fromEntries(
-    DATA.cf.fish.map(([name, file]) => [sanitizeKey(file), name])
+function getSyncedGames() {
+    return Object.keys(SHEET_SYNC).filter(game => getSheetUrl(game));
+}
+
+const FISH_BY_KEY = Object.fromEntries(
+    Object.keys(SHEET_SYNC).map(game => [
+        game,
+        Object.fromEntries(DATA[game].fish.map(([name, file]) => [sanitizeKey(file), name])),
+    ])
 );
 
 let sheetSyncTimer = null;
 
 function scheduleSheetSync() {
-    if (!getSheetUrl()) return;
+    if (!getSyncedGames().length) return;
     clearTimeout(sheetSyncTimer);
     // Short delay: groups fast clicks and lets co-op data arrive first
     sheetSyncTimer = setTimeout(sendSheetSync, 600);
 }
 
 function sendSheetSync() {
-    const url = getSheetUrl();
-    if (!url) return;
-    const caught = getStorageKey("cf", "fish");
-    const names  = Object.keys(caught)
-        .filter(key => caught[key] && CF_FISH_BY_KEY[key])
-        .map(key => CF_FISH_BY_KEY[key]);
-
+    const games = getSyncedGames();
+    if (!games.length) return;
     setSheetStatus("pending");
-    fetch(url, {
-        method:  "POST",
-        mode:    "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body:    JSON.stringify({ game: "cf", caught: names, t: Date.now() }),
-    })
+    const requests = games.map(game => {
+        const caught = getStorageKey(game, "fish");
+        const names  = Object.keys(caught)
+            .filter(key => caught[key] && FISH_BY_KEY[game][key])
+            .map(key => FISH_BY_KEY[game][key]);
+        return fetch(getSheetUrl(game), {
+            method:  "POST",
+            mode:    "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body:    JSON.stringify({ game, caught: names, t: Date.now() }),
+        });
+    });
+    Promise.all(requests)
         .then(() => setSheetStatus("ok"))
         .catch(() => setSheetStatus("error"));
 }
@@ -1298,7 +1319,7 @@ categorySelect.addEventListener("change", loadGrid);
 loadGrid();
 
 // Sheet sync on: show the badge and send the current state once at startup
-if (getSheetUrl()) {
+if (getSyncedGames().length) {
     setSheetStatus("idle");
     scheduleSheetSync();
 }
@@ -1308,7 +1329,7 @@ document.getElementById("reset").addEventListener("click", () => {
     const game     = gameSelect.value;
     const category = categorySelect.value;
 
-    if (game === "cf" && (category === "fish" || category === "all")) scheduleSheetSync();
+    if (SHEET_SYNC[game] && (category === "fish" || category === "all")) scheduleSheetSync();
 
     if (!currentRoom) {
         if (category === "all") {
